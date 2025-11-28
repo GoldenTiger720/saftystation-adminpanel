@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model news_newsitem {
+  id           BigInt    @id @default(autoincrement())
+  title        String    @db.VarChar(200)
+  summary      String
+  content      String
+  category     String    @db.VarChar(20)
+  priority     String    @db.VarChar(10)
+  is_published Boolean
+  published_at DateTime? @db.Timestamptz(6)
+  created_at   DateTime  @db.Timestamptz(6)
+  updated_at   DateTime  @db.Timestamptz(6)
+  author       String    @db.VarChar(100)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model news_video {
+  id          BigInt                   @id @default(autoincrement())
+  title       String                   @db.VarChar(200)
+  description String
+  video_type  String                   @db.VarChar(20)
+  thumbnail   String?                  @db.VarChar(100)
+  video_url   String                   @db.VarChar(200)
+  video_file  String?                  @db.VarChar(100)
+  duration    Unsupported("interval")?
+  is_featured Boolean
+  view_count  Int
+  created_at  DateTime                 @db.Timestamptz(6)
+  updated_at  DateTime                 @db.Timestamptz(6)
+  is_active   Boolean
+  uploaded_by String                   @db.VarChar(100)
+}
+
+model performance_dashboarddata {
+  id                    BigInt   @id @default(autoincrement())
+  date                  DateTime @unique @db.Date
+  spotlights_ytd        Int
+  spotlights_mtd        Int
+  safety_tour_ytd       Decimal  @db.Decimal(5, 2)
+  safety_tour_mtd       Decimal  @db.Decimal(5, 2)
+  possession_average    Int
+  average_work_per_hour Decimal  @db.Decimal(8, 2)
+  in_process_critical   Int
+  in_process_warning    Int
+  possession_active     Int
+  possession_inactive   Int
+  preparation_status    Int
+  breakdown_status      Int
+  created_at            DateTime @db.Timestamptz(6)
+  updated_at            DateTime @db.Timestamptz(6)
+}
+
+model performance_performancemetric {
+  id           BigInt   @id @default(autoincrement())
+  metric_type  String   @db.VarChar(30)
+  name         String   @db.VarChar(100)
+  value        Decimal  @db.Decimal(10, 2)
+  target_value Decimal? @db.Decimal(10, 2)
+  unit         String   @db.VarChar(20)
+  period       String   @db.VarChar(10)
+  date         DateTime @db.Date
+  created_at   DateTime @db.Timestamptz(6)
+  updated_at   DateTime @db.Timestamptz(6)
+  is_active    Boolean
+  created_by   String   @db.VarChar(100)
+
+  @@unique([metric_type, name, date], map: "performance_performancem_metric_type_name_date_94b308a4_uniq")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model rhomberg_videos {
+  id            BigInt   @id @default(autoincrement())
+  video_id      String   @unique @db.VarChar(50)
+  title         String   @db.VarChar(200)
+  description   String
+  thumbnail_url String   @db.VarChar(200)
+  video_url     String   @db.VarChar(200)
+  duration      String   @db.VarChar(20)
+  published_at  DateTime @db.Timestamptz(6)
+  view_count    Int
+  like_count    Int
+  channel_title String   @db.VarChar(100)
+  fetched_at    DateTime @db.Timestamptz(6)
+  updated_at    DateTime @db.Timestamptz(6)
+  is_active     Boolean
+
+  @@index([video_id], map: "rhomberg_videos_video_id_f52befc1_like")
+}
+
+model staff_checkinrecord {
+  id             BigInt    @id @default(autoincrement())
+  name           String    @db.VarChar(100)
+  check_in_time  DateTime? @db.Timestamptz(6)
+  check_out_time DateTime? @db.Timestamptz(6)
+  status         String    @db.VarChar(20)
+  created_at     DateTime  @db.Timestamptz(6)
+  updated_at     DateTime  @db.Timestamptz(6)
+  company        String    @db.VarChar(100)
+  reason         String    @db.VarChar(100)
+}
+
+model api_keys {
+  id         BigInt   @id @default(autoincrement())
+  key_name   String   @unique @db.VarChar(50)
+  key_value  String   @db.VarChar(255)
+  channel_id String?  @db.VarChar(50)
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+}
