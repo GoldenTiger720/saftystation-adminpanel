@@ -85,7 +85,7 @@ const UserManagement: React.FC<UserManagementProps> = ({ className }) => {
   }, [fetchRecords]);
 
   // Get unique companies for filter
-  const uniqueCompanies = [...new Set(records.map(r => r.company).filter(Boolean))];
+  const uniqueCompanies = Array.from(new Set(records.map(r => r.company).filter(Boolean)));
 
   const filteredRecords = records.filter(record => {
     const matchesSearch = record.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

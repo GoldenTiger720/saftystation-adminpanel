@@ -23,7 +23,6 @@ import {
   TrendingUp,
   AlertTriangle,
   CheckCircle,
-  Activity,
   Server,
   HardDrive,
   Clock,

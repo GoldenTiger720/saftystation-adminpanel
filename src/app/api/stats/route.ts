@@ -83,10 +83,7 @@ export async function GET() {
         time: formatTimeAgo(news.updated_at),
         type: news.is_published ? "success" as const : "info" as const,
       })),
-    ].sort((a, b) => {
-      // This is approximate sorting since we converted to relative time
-      return 0;
-    }).slice(0, 10);
+    ].slice(0, 10);
 
     return NextResponse.json({
       systemStats: {
