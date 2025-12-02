@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import UserManagement from "@/components/admin/UserManagement";
 import ContentManagement from "@/components/admin/ContentManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
+import NewsManagement from "@/components/admin/NewsManagement";
 import SystemSettings from "@/components/admin/SystemSettings";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +29,7 @@ import {
   Clock,
   UserCheck,
   RefreshCw,
+  Newspaper,
 } from "lucide-react";
 
 interface SystemStats {
@@ -252,7 +254,7 @@ export default function AdminPanel() {
 
         {/* Main Content */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -264,6 +266,10 @@ export default function AdminPanel() {
             <TabsTrigger value="content" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Content
+            </TabsTrigger>
+            <TabsTrigger value="news" className="flex items-center gap-2">
+              <Newspaper className="h-4 w-4" />
+              News
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="h-4 w-4" />
@@ -285,6 +291,10 @@ export default function AdminPanel() {
 
           <TabsContent value="content" className="space-y-6">
             <ContentManagement />
+          </TabsContent>
+
+          <TabsContent value="news" className="space-y-6">
+            <NewsManagement />
           </TabsContent>
 
           <TabsContent value="videos" className="space-y-6">
