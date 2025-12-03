@@ -10,6 +10,7 @@ import UserManagement from "@/components/admin/UserManagement";
 import ContentManagement from "@/components/admin/ContentManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
 import NewsManagement from "@/components/admin/NewsManagement";
+import SafetyAlertsManagement from "@/components/admin/SafetyAlertsManagement";
 import SystemSettings from "@/components/admin/SystemSettings";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
@@ -254,7 +255,7 @@ export default function AdminPanel() {
 
         {/* Main Content */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -270,6 +271,10 @@ export default function AdminPanel() {
             <TabsTrigger value="news" className="flex items-center gap-2">
               <Newspaper className="h-4 w-4" />
               News
+            </TabsTrigger>
+            <TabsTrigger value="safety-alerts" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Safety Alerts
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="h-4 w-4" />
@@ -295,6 +300,10 @@ export default function AdminPanel() {
 
           <TabsContent value="news" className="space-y-6">
             <NewsManagement />
+          </TabsContent>
+
+          <TabsContent value="safety-alerts" className="space-y-6">
+            <SafetyAlertsManagement />
           </TabsContent>
 
           <TabsContent value="videos" className="space-y-6">
