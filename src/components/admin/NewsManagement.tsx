@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import NextImage from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
-  Image,
+  Image as ImageIcon,
   User,
   Link,
   Briefcase,
@@ -357,7 +358,7 @@ const NewsManagement: React.FC<NewsManagementProps> = ({ className }) => {
     id: string;
     label: string;
     field: "imageData" | "avatarData";
-    icon: typeof Image;
+    icon: typeof ImageIcon;
   }) => (
     <div className="space-y-2">
       <Label htmlFor={id}>
@@ -391,10 +392,12 @@ const NewsManagement: React.FC<NewsManagementProps> = ({ className }) => {
               field === "avatarData" ? "w-16 h-16 rounded-full" : "w-32 h-24 rounded"
             } overflow-hidden bg-gray-100 border`}
           >
-            <img
+            <NextImage
               src={formData[field]}
               alt="Preview"
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
             />
           </div>
         )}
@@ -690,11 +693,13 @@ const NewsManagement: React.FC<NewsManagementProps> = ({ className }) => {
                       </TableCell>
                       <TableCell>
                         {news.imageData ? (
-                          <div className="w-16 h-12 rounded overflow-hidden bg-gray-100">
-                            <img
+                          <div className="w-16 h-12 rounded overflow-hidden bg-gray-100 relative">
+                            <NextImage
                               src={news.imageData}
                               alt={news.title}
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
+                              unoptimized
                             />
                           </div>
                         ) : (
@@ -705,11 +710,13 @@ const NewsManagement: React.FC<NewsManagementProps> = ({ className }) => {
                       </TableCell>
                       <TableCell>
                         {news.avatarData ? (
-                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100">
-                            <img
+                          <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 relative">
+                            <NextImage
                               src={news.avatarData}
                               alt="Avatar"
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
+                              unoptimized
                             />
                           </div>
                         ) : (

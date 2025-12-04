@@ -18,7 +18,6 @@ import {
   Users,
   Settings,
   BarChart3,
-  FileText,
   Video,
   Bell,
   Search,

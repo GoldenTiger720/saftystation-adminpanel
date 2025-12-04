@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -516,10 +517,12 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
           </div>
           {formData.thumbnailData && (
             <div className="relative w-32 h-24 rounded overflow-hidden bg-gray-100 border">
-              <img
+              <Image
                 src={formData.thumbnailData}
                 alt="Preview"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                unoptimized
               />
             </div>
           )}
@@ -750,11 +753,13 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
                       </TableCell>
                       <TableCell>
                         {alert.thumbnailData ? (
-                          <div className="w-16 h-12 rounded overflow-hidden bg-gray-100">
-                            <img
+                          <div className="w-16 h-12 rounded overflow-hidden bg-gray-100 relative">
+                            <Image
                               src={alert.thumbnailData}
                               alt={alert.title}
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
+                              unoptimized
                             />
                           </div>
                         ) : (

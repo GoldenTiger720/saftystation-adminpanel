@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -427,11 +428,13 @@ const DepotInductionManagement: React.FC<DepotInductionManagementProps> = ({ cla
                     <TableRow key={video.id}>
                       <TableCell>
                         <div className="flex items-center space-x-3">
-                          <div className="w-24 h-14 bg-muted rounded overflow-hidden flex-shrink-0">
-                            <img
+                          <div className="w-24 h-14 bg-muted rounded overflow-hidden flex-shrink-0 relative">
+                            <Image
                               src={`https://img.youtube.com/vi/${video.youtubeId}/mqdefault.jpg`}
                               alt={video.title}
-                              className="w-full h-full object-cover"
+                              fill
+                              className="object-cover"
+                              unoptimized
                             />
                           </div>
                           <div className="font-medium">{video.title}</div>
