@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import UserManagement from "@/components/admin/UserManagement";
-import ContentManagement from "@/components/admin/ContentManagement";
+import DepotInductionManagement from "@/components/admin/DepotInductionManagement";
 import VideoManagement from "@/components/admin/VideoManagement";
 import NewsManagement from "@/components/admin/NewsManagement";
 import SafetyAlertsManagement from "@/components/admin/SafetyAlertsManagement";
@@ -264,9 +264,9 @@ export default function AdminPanel() {
               <Users className="h-4 w-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="content" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Content
+            <TabsTrigger value="depot-induction" className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              Depot Induction
             </TabsTrigger>
             <TabsTrigger value="news" className="flex items-center gap-2">
               <Newspaper className="h-4 w-4" />
@@ -294,8 +294,8 @@ export default function AdminPanel() {
             <UserManagement />
           </TabsContent>
 
-          <TabsContent value="content" className="space-y-6">
-            <ContentManagement />
+          <TabsContent value="depot-induction" className="space-y-6">
+            <DepotInductionManagement />
           </TabsContent>
 
           <TabsContent value="news" className="space-y-6">
