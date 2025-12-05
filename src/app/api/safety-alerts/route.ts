@@ -48,23 +48,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if alert for this week/year already exists
-    const existingAlert = await prisma.safety_alerts.findUnique({
-      where: {
-        week_number_year: {
-          week_number: weekNumber,
-          year: year,
-        },
-      },
-    });
-
-    if (existingAlert) {
-      return NextResponse.json(
-        { error: `Safety alert for week ${weekNumber} of ${year} already exists` },
-        { status: 409 }
-      );
-    }
-
     const newSafetyAlert = await prisma.safety_alerts.create({
       data: {
         week_number: weekNumber,

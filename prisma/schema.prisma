@@ -144,8 +144,6 @@ model safety_alerts {
   is_active       Boolean  @default(true)
   created_at      DateTime @default(now()) @db.Timestamptz(6)
   updated_at      DateTime @default(now()) @db.Timestamptz(6)
-
-  @@unique([week_number, year])
 }
 
 model depot_induction_videos {
