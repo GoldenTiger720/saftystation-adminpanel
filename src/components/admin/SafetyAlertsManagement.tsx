@@ -29,6 +29,11 @@ import {
   Download,
 } from "lucide-react";
 
+interface PdfFile {
+  filename: string;
+  data: string;
+}
+
 interface SafetyAlert {
   id: string;
   weekNumber: number;
@@ -39,6 +44,7 @@ interface SafetyAlert {
   thumbnailData: string | null;
   pdfData: string | null;
   pdfFilename: string | null;
+  pdfFiles: PdfFile[] | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -49,7 +55,7 @@ interface SafetyAlertsManagementProps {
 }
 
 const MAX_IMAGE_SIZE = 500 * 1024; // 500KB limit for base64 images
-const MAX_PDF_SIZE = 5 * 1024 * 1024; // 5MB limit for PDFs
+const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB limit for PDFs (increased from 5MB)
 
 const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ className }) => {
   const [alerts, setAlerts] = useState<SafetyAlert[]>([]);
@@ -72,6 +78,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
     thumbnailData: "",
     pdfData: "",
     pdfFilename: "",
+    pdfFiles: [] as PdfFile[],
   });
 
   const { toast } = useToast();
@@ -152,37 +159,55 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
   };
 
   const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
 
-    if (file.type !== "application/pdf") {
-      toast({
-        title: "Error",
-        description: "Please select a PDF file",
-        variant: "destructive",
-      });
-      return;
+    const newPdfFiles: PdfFile[] = [];
+    const errors: string[] = [];
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+
+      if (file.type !== "application/pdf") {
+        errors.push(`"${file.name}" is not a PDF file`);
+        continue;
+      }
+
+      try {
+        const base64 = await handleFileToBase64(file, MAX_PDF_SIZE);
+        newPdfFiles.push({
+          filename: file.name,
+          data: base64,
+        });
+      } catch (error) {
+        errors.push(`"${file.name}": ${error instanceof Error ? error.message : "Failed to upload"}`);
+      }
     }
 
-    try {
-      const base64 = await handleFileToBase64(file, MAX_PDF_SIZE);
+    if (newPdfFiles.length > 0) {
       setFormData((prev) => ({
         ...prev,
-        pdfData: base64,
-        pdfFilename: file.name,
+        pdfFiles: [...prev.pdfFiles, ...newPdfFiles],
+        // Keep legacy fields for backward compatibility
+        pdfData: newPdfFiles[0].data,
+        pdfFilename: newPdfFiles[0].filename,
       }));
       toast({
         title: "Success",
-        description: "PDF uploaded successfully",
+        description: `${newPdfFiles.length} PDF${newPdfFiles.length > 1 ? 's' : ''} uploaded successfully`,
       });
-    } catch (error) {
-      console.error("Error uploading PDF:", error);
+    }
+
+    if (errors.length > 0) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to upload PDF",
+        title: "Some files failed to upload",
+        description: errors.join(", "),
         variant: "destructive",
       });
     }
+
+    // Reset the input so the same files can be selected again
+    event.target.value = "";
   };
 
   const clearImage = () => {
@@ -190,7 +215,20 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
   };
 
   const clearPdf = () => {
-    setFormData((prev) => ({ ...prev, pdfData: "", pdfFilename: "" }));
+    setFormData((prev) => ({ ...prev, pdfData: "", pdfFilename: "", pdfFiles: [] }));
+  };
+
+  const removePdf = (index: number) => {
+    setFormData((prev) => {
+      const newPdfFiles = prev.pdfFiles.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        pdfFiles: newPdfFiles,
+        // Update legacy fields if there are remaining files
+        pdfData: newPdfFiles.length > 0 ? newPdfFiles[0].data : "",
+        pdfFilename: newPdfFiles.length > 0 ? newPdfFiles[0].filename : "",
+      };
+    });
   };
 
   const filteredAlerts = alerts.filter((item) => {
@@ -228,6 +266,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
           thumbnailData: formData.thumbnailData || null,
           pdfData: formData.pdfData || null,
           pdfFilename: formData.pdfFilename || null,
+          pdfFiles: formData.pdfFiles.length > 0 ? formData.pdfFiles : null,
         }),
       });
 
@@ -250,6 +289,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
         thumbnailData: "",
         pdfData: "",
         pdfFilename: "",
+        pdfFiles: [],
       });
       setIsCreateDialogOpen(false);
       fetchAlerts();
@@ -288,6 +328,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
           thumbnailData: formData.thumbnailData || null,
           pdfData: formData.pdfData || null,
           pdfFilename: formData.pdfFilename || null,
+          pdfFiles: formData.pdfFiles.length > 0 ? formData.pdfFiles : null,
         }),
       });
 
@@ -312,6 +353,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
         thumbnailData: "",
         pdfData: "",
         pdfFilename: "",
+        pdfFiles: [],
       });
       fetchAlerts();
     } catch (error) {
@@ -384,6 +426,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
       thumbnailData: "",
       pdfData: "",
       pdfFilename: "",
+      pdfFiles: [],
     });
     setIsCreateDialogOpen(true);
   };
@@ -399,6 +442,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
       thumbnailData: item.thumbnailData || "",
       pdfData: item.pdfData || "",
       pdfFilename: item.pdfFilename || "",
+      pdfFiles: item.pdfFiles || [],
     });
     setIsEditDialogOpen(true);
   };
@@ -532,11 +576,11 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
         </div>
       </div>
 
-      {/* PDF Upload */}
+      {/* PDF Upload - Multiple Files */}
       <div className="space-y-2">
         <Label htmlFor={`${prefix}-pdf`}>
           <FileText className="inline h-4 w-4 mr-1" />
-          PDF Document
+          PDF Documents (Multiple files allowed)
         </Label>
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
@@ -544,29 +588,46 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
               id={`${prefix}-pdf`}
               type="file"
               accept=".pdf,application/pdf"
+              multiple
               onChange={handlePdfUpload}
               className="flex-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
-            {formData.pdfData && (
+            {formData.pdfFiles.length > 0 && (
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
                 onClick={clearPdf}
                 className="shrink-0"
+                title="Clear all PDFs"
               >
                 <X className="h-4 w-4" />
               </Button>
             )}
           </div>
-          {formData.pdfFilename && (
-            <div className="flex items-center gap-2 p-2 bg-gray-100 rounded border">
-              <FileText className="h-4 w-4 text-red-500" />
-              <span className="text-sm">{formData.pdfFilename}</span>
+          {formData.pdfFiles.length > 0 && (
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {formData.pdfFiles.map((pdf, index) => (
+                <div key={index} className="flex items-center justify-between gap-2 p-2 bg-gray-100 rounded border">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <FileText className="h-4 w-4 text-red-500 shrink-0" />
+                    <span className="text-sm truncate">{pdf.filename}</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removePdf(index)}
+                    className="h-6 w-6 shrink-0"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Max size: {MAX_PDF_SIZE / 1024 / 1024}MB. Only PDF files are accepted.
+            Max size per file: {MAX_PDF_SIZE / 1024 / 1024}MB. Select multiple PDF files at once or add more files. ({formData.pdfFiles.length} file{formData.pdfFiles.length !== 1 ? 's' : ''} selected)
           </p>
         </div>
       </div>
@@ -769,7 +830,25 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
                         )}
                       </TableCell>
                       <TableCell>
-                        {alert.pdfData ? (
+                        {alert.pdfFiles && alert.pdfFiles.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {alert.pdfFiles.map((pdf, index) => (
+                              <a
+                                key={index}
+                                href={pdf.data}
+                                download={pdf.filename}
+                                className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                                title={pdf.filename}
+                              >
+                                <Download className="h-3 w-3" />
+                                <span className="truncate max-w-[100px]">{pdf.filename}</span>
+                              </a>
+                            ))}
+                            <span className="text-xs text-muted-foreground">
+                              {alert.pdfFiles.length} file{alert.pdfFiles.length !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        ) : alert.pdfData ? (
                           <a
                             href={alert.pdfData}
                             download={alert.pdfFilename || "safety-alert.pdf"}

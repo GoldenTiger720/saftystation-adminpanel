@@ -20,6 +20,7 @@ export async function GET() {
       thumbnailData: item.thumbnail_data,
       pdfData: item.pdf_data,
       pdfFilename: item.pdf_filename,
+      pdfFiles: item.pdf_files,
       isActive: item.is_active,
       createdAt: item.created_at.toISOString(),
       updatedAt: item.updated_at.toISOString(),
@@ -39,7 +40,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { weekNumber, year, category, title, content, thumbnailData, pdfData, pdfFilename } = body;
+    const { weekNumber, year, category, title, content, thumbnailData, pdfData, pdfFilename, pdfFiles } = body;
 
     if (!weekNumber || !year || !category || !title || !content) {
       return NextResponse.json(
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
         thumbnail_data: thumbnailData || null,
         pdf_data: pdfData || null,
         pdf_filename: pdfFilename || null,
+        pdf_files: pdfFiles || null,
         is_active: true,
         created_at: new Date(),
         updated_at: new Date(),
@@ -74,6 +76,7 @@ export async function POST(request: NextRequest) {
       thumbnailData: newSafetyAlert.thumbnail_data,
       pdfData: newSafetyAlert.pdf_data,
       pdfFilename: newSafetyAlert.pdf_filename,
+      pdfFiles: newSafetyAlert.pdf_files,
       isActive: newSafetyAlert.is_active,
       createdAt: newSafetyAlert.created_at.toISOString(),
       updatedAt: newSafetyAlert.updated_at.toISOString(),

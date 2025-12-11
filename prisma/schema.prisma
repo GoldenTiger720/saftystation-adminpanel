@@ -141,6 +141,7 @@ model safety_alerts {
   thumbnail_data  String?  @db.Text
   pdf_data        String?  @db.Text
   pdf_filename    String?  @db.VarChar(255)
+  pdf_files       Json?    @db.Json  // Array of {filename: string, data: string} for multiple PDFs
   is_active       Boolean  @default(true)
   created_at      DateTime @default(now()) @db.Timestamptz(6)
   updated_at      DateTime @default(now()) @db.Timestamptz(6)

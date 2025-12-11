@@ -31,6 +31,7 @@ export async function GET(
       thumbnailData: safetyAlert.thumbnail_data,
       pdfData: safetyAlert.pdf_data,
       pdfFilename: safetyAlert.pdf_filename,
+      pdfFiles: safetyAlert.pdf_files,
       isActive: safetyAlert.is_active,
       createdAt: safetyAlert.created_at.toISOString(),
       updatedAt: safetyAlert.updated_at.toISOString(),
@@ -52,7 +53,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { weekNumber, year, category, title, content, thumbnailData, pdfData, pdfFilename } = body;
+    const { weekNumber, year, category, title, content, thumbnailData, pdfData, pdfFilename, pdfFiles } = body;
 
     if (!weekNumber || !year || !category || !title || !content) {
       return NextResponse.json(
@@ -88,6 +89,7 @@ export async function PUT(
         thumbnail_data: thumbnailData || null,
         pdf_data: pdfData || null,
         pdf_filename: pdfFilename || null,
+        pdf_files: pdfFiles || null,
         updated_at: new Date(),
       },
     });
@@ -102,6 +104,7 @@ export async function PUT(
       thumbnailData: updatedSafetyAlert.thumbnail_data,
       pdfData: updatedSafetyAlert.pdf_data,
       pdfFilename: updatedSafetyAlert.pdf_filename,
+      pdfFiles: updatedSafetyAlert.pdf_files,
       isActive: updatedSafetyAlert.is_active,
       createdAt: updatedSafetyAlert.created_at.toISOString(),
       updatedAt: updatedSafetyAlert.updated_at.toISOString(),
@@ -164,6 +167,7 @@ export async function PATCH(
       thumbnailData: updatedSafetyAlert.thumbnail_data,
       pdfData: updatedSafetyAlert.pdf_data,
       pdfFilename: updatedSafetyAlert.pdf_filename,
+      pdfFiles: updatedSafetyAlert.pdf_files,
       isActive: updatedSafetyAlert.is_active,
       createdAt: updatedSafetyAlert.created_at.toISOString(),
       updatedAt: updatedSafetyAlert.updated_at.toISOString(),
