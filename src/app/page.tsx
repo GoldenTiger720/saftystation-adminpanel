@@ -14,6 +14,7 @@ import SafetyAlertsManagement from "@/components/admin/SafetyAlertsManagement";
 import SystemSettings from "@/components/admin/SystemSettings";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Users,
   Settings,
@@ -30,6 +31,8 @@ import {
   UserCheck,
   RefreshCw,
   Newspaper,
+  LogOut,
+  Loader2,
 } from "lucide-react";
 
 interface SystemStats {
@@ -55,6 +58,7 @@ interface RecentActivityItem {
 }
 
 export default function AdminPanel() {
+  const { isLoading: authLoading, isAuthenticated, logout } = useAuth();
   const [selectedTab, setSelectedTab] = useState("overview");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -95,8 +99,10 @@ export default function AdminPanel() {
   }, [toast]);
 
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    if (isAuthenticated) {
+      fetchStats();
+    }
+  }, [fetchStats, isAuthenticated]);
 
   const renderOverview = () => (
     <div className="space-y-6">
@@ -227,6 +233,20 @@ export default function AdminPanel() {
     </div>
   );
 
+  // Show loading spinner while checking authentication
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // If not authenticated, the AuthContext will redirect to login
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-4 space-y-6">
@@ -248,6 +268,10 @@ export default function AdminPanel() {
             </div>
             <Button variant="outline" size="icon">
               <Bell className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" onClick={logout} className="flex items-center gap-2">
+              <LogOut className="h-4 w-4" />
+              Logout
             </Button>
           </div>
         </div>
