@@ -11,6 +11,7 @@ import DepotInductionManagement from "@/components/admin/DepotInductionManagemen
 import VideoManagement from "@/components/admin/VideoManagement";
 import NewsManagement from "@/components/admin/NewsManagement";
 import SafetyAlertsManagement from "@/components/admin/SafetyAlertsManagement";
+import OperationsManagement from "@/components/admin/OperationsManagement";
 import SystemSettings from "@/components/admin/SystemSettings";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
@@ -33,6 +34,7 @@ import {
   Newspaper,
   LogOut,
   Loader2,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface SystemStats {
@@ -278,7 +280,7 @@ export default function AdminPanel() {
 
         {/* Main Content */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -298,6 +300,10 @@ export default function AdminPanel() {
             <TabsTrigger value="safety-alerts" className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
               Safety Alerts
+            </TabsTrigger>
+            <TabsTrigger value="operations" className="flex items-center gap-2">
+              <FileSpreadsheet className="h-4 w-4" />
+              Operation
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="h-4 w-4" />
@@ -327,6 +333,10 @@ export default function AdminPanel() {
 
           <TabsContent value="safety-alerts" className="space-y-6">
             <SafetyAlertsManagement />
+          </TabsContent>
+
+          <TabsContent value="operations" className="space-y-6">
+            <OperationsManagement />
           </TabsContent>
 
           <TabsContent value="videos" className="space-y-6">
