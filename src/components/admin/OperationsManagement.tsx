@@ -323,12 +323,12 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to update operation");
+        throw new Error(errorData.error || "Failed to update operations");
       }
 
       toast({
         title: "Success",
-        description: "Operation schedule updated successfully",
+        description: "Operations schedule updated successfully",
       });
 
       setIsEditDialogOpen(false);
@@ -558,7 +558,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <div>
           <h2 className="text-2xl font-bold">Operations Management</h2>
           <p className="text-muted-foreground">
-            Manage weekly operation schedules with Excel file uploads
+            Manage weekly operations schedules with Excel file uploads
           </p>
         </div>
 
@@ -573,9 +573,9 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Operation Schedule</DialogTitle>
+              <DialogTitle>Create New Operations Schedule</DialogTitle>
               <DialogDescription>
-                Add a new weekly operation schedule with an Excel file.
+                Add a new weekly operations schedule with an Excel file.
               </DialogDescription>
             </DialogHeader>
             {renderFormContent("create")}
@@ -778,7 +778,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
-            Operation Schedules ({filteredOperations.length})
+            Operations Schedules ({filteredOperations.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -897,7 +897,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Operation Schedule</AlertDialogTitle>
+                                <AlertDialogTitle>Delete Operations Schedule</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Are you sure you want to delete &quot;
                                   {operation.title}&quot;? This action cannot be undone.
@@ -928,9 +928,9 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Operation Schedule</DialogTitle>
+            <DialogTitle>Edit Operations Schedule</DialogTitle>
             <DialogDescription>
-              Update the operation schedule information.
+              Update the operations schedule information.
             </DialogDescription>
           </DialogHeader>
           {renderFormContent("edit")}
@@ -951,7 +951,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {viewingItem?.title || "Operation Schedule"}
+              {viewingItem?.title || "Operations Schedule"}
             </DialogTitle>
             <DialogDescription>
               Week {viewingItem?.weekNumber}, {viewingItem?.year}
