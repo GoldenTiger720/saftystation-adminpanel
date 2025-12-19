@@ -303,7 +303,7 @@ export default function AdminPanel() {
             </TabsTrigger>
             <TabsTrigger value="operations" className="flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4" />
-              Operation
+              Operations
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="h-4 w-4" />
