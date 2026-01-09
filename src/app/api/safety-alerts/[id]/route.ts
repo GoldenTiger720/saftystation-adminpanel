@@ -3,6 +3,9 @@ import prisma from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+// Increase body size limit for PDF uploads (default is 4.5MB on Vercel)
+export const maxDuration = 60; // 60 seconds timeout for large uploads
+
 // GET - Fetch a single safety alert by ID
 export async function GET(
   _request: NextRequest,

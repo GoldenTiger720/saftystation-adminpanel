@@ -243,6 +243,37 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
     return matchesSearch && matchesStatus;
   });
 
+  // Upload PDFs one by one to avoid Vercel's 4.5MB body size limit
+  const uploadPdfsIndividually = async (alertId: string, pdfFiles: PdfFile[]) => {
+    const results = { success: 0, failed: 0 };
+
+    for (const pdf of pdfFiles) {
+      try {
+        const response = await fetch("/api/safety-alerts/upload-pdf", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            alertId,
+            filename: pdf.filename,
+            data: pdf.data,
+          }),
+        });
+
+        if (response.ok) {
+          results.success++;
+        } else {
+          results.failed++;
+          console.error(`Failed to upload ${pdf.filename}`);
+        }
+      } catch (error) {
+        results.failed++;
+        console.error(`Error uploading ${pdf.filename}:`, error);
+      }
+    }
+
+    return results;
+  };
+
   const handleCreateAlert = async () => {
     if (!formData.weekNumber || !formData.year || !formData.category || !formData.title || !formData.content) {
       toast({
@@ -254,6 +285,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
     }
 
     try {
+      // First, create the alert without PDFs (to avoid body size limit)
       const response = await fetch("/api/safety-alerts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -264,9 +296,9 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
           title: formData.title,
           content: formData.content,
           thumbnailData: formData.thumbnailData || null,
-          pdfData: formData.pdfData || null,
-          pdfFilename: formData.pdfFilename || null,
-          pdfFiles: formData.pdfFiles.length > 0 ? formData.pdfFiles : null,
+          pdfData: null,
+          pdfFilename: null,
+          pdfFiles: null,
         }),
       });
 
@@ -275,10 +307,35 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
         throw new Error(errorData.error || "Failed to create safety alert");
       }
 
-      toast({
-        title: "Success",
-        description: "Safety alert created successfully",
-      });
+      const createdAlert = await response.json();
+
+      // Then upload PDFs one by one
+      if (formData.pdfFiles.length > 0) {
+        toast({
+          title: "Uploading PDFs...",
+          description: `Uploading ${formData.pdfFiles.length} PDF file(s)...`,
+        });
+
+        const uploadResults = await uploadPdfsIndividually(createdAlert.id, formData.pdfFiles);
+
+        if (uploadResults.failed > 0) {
+          toast({
+            title: "Warning",
+            description: `${uploadResults.success} PDF(s) uploaded, ${uploadResults.failed} failed`,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: `Safety alert created with ${uploadResults.success} PDF(s)`,
+          });
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Safety alert created successfully",
+        });
+      }
 
       setFormData({
         weekNumber: currentWeek,
@@ -316,6 +373,7 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
     }
 
     try {
+      // First, update the alert without PDFs (to avoid body size limit)
       const response = await fetch(`/api/safety-alerts/${editingItem.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -326,9 +384,9 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
           title: formData.title,
           content: formData.content,
           thumbnailData: formData.thumbnailData || null,
-          pdfData: formData.pdfData || null,
-          pdfFilename: formData.pdfFilename || null,
-          pdfFiles: formData.pdfFiles.length > 0 ? formData.pdfFiles : null,
+          pdfData: null,
+          pdfFilename: null,
+          pdfFiles: null, // Clear existing PDFs, will re-upload
         }),
       });
 
@@ -337,10 +395,33 @@ const SafetyAlertsManagement: React.FC<SafetyAlertsManagementProps> = ({ classNa
         throw new Error(errorData.error || "Failed to update safety alert");
       }
 
-      toast({
-        title: "Success",
-        description: "Safety alert updated successfully",
-      });
+      // Then upload PDFs one by one
+      if (formData.pdfFiles.length > 0) {
+        toast({
+          title: "Uploading PDFs...",
+          description: `Uploading ${formData.pdfFiles.length} PDF file(s)...`,
+        });
+
+        const uploadResults = await uploadPdfsIndividually(editingItem.id, formData.pdfFiles);
+
+        if (uploadResults.failed > 0) {
+          toast({
+            title: "Warning",
+            description: `${uploadResults.success} PDF(s) uploaded, ${uploadResults.failed} failed`,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: `Safety alert updated with ${uploadResults.success} PDF(s)`,
+          });
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Safety alert updated successfully",
+        });
+      }
 
       setIsEditDialogOpen(false);
       setEditingItem(null);

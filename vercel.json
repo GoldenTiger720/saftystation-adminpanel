@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/safety-alerts/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/safety-alerts/[id]/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
