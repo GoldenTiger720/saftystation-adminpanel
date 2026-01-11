@@ -13,7 +13,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import {
-  FileSpreadsheet,
+  FileText,
   Plus,
   Edit,
   Trash2,
@@ -33,8 +33,8 @@ interface Operation {
   year: number;
   title: string;
   description: string | null;
-  excelData: string | null;
-  excelFilename: string | null;
+  pdfData: string | null;
+  pdfFilename: string | null;
   scheduleType: "this_week" | "next_week";
   isActive: boolean;
   createdAt: string;
@@ -45,7 +45,7 @@ interface OperationsManagementProps {
   className?: string;
 }
 
-const MAX_EXCEL_SIZE = 20 * 1024 * 1024; // 20MB limit for Excel files
+const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB limit for PDF files
 
 const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }) => {
   const [operations, setOperations] = useState<Operation[]>([]);
@@ -66,8 +66,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
     year: currentYear,
     title: "",
     description: "",
-    excelData: "",
-    excelFilename: "",
+    pdfData: "",
+    pdfFilename: "",
     scheduleType: "this_week" as "this_week" | "next_week",
   });
 
@@ -118,43 +118,38 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
     });
   };
 
-  const handleExcelUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePdfUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const validTypes = [
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "application/vnd.oasis.opendocument.spreadsheet",
-    ];
-    const validExtensions = [".xls", ".xlsx", ".ods"];
-    const hasValidExtension = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    const validTypes = ["application/pdf"];
+    const hasValidExtension = file.name.toLowerCase().endsWith(".pdf");
 
     if (!validTypes.includes(file.type) && !hasValidExtension) {
       toast({
         title: "Error",
-        description: "Please select an Excel file (.xls, .xlsx, or .ods)",
+        description: "Please select a PDF file (.pdf)",
         variant: "destructive",
       });
       return;
     }
 
     try {
-      const base64 = await handleFileToBase64(file, MAX_EXCEL_SIZE);
+      const base64 = await handleFileToBase64(file, MAX_PDF_SIZE);
       setFormData((prev) => ({
         ...prev,
-        excelData: base64,
-        excelFilename: file.name,
+        pdfData: base64,
+        pdfFilename: file.name,
       }));
       toast({
         title: "Success",
-        description: "Excel file uploaded successfully",
+        description: "PDF file uploaded successfully",
       });
     } catch (error) {
-      console.error("Error uploading Excel file:", error);
+      console.error("Error uploading PDF file:", error);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to upload Excel file",
+        description: error instanceof Error ? error.message : "Failed to upload PDF file",
         variant: "destructive",
       });
     }
@@ -163,8 +158,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
     event.target.value = "";
   };
 
-  const clearExcel = () => {
-    setFormData((prev) => ({ ...prev, excelData: "", excelFilename: "" }));
+  const clearPdf = () => {
+    setFormData((prev) => ({ ...prev, pdfData: "", pdfFilename: "" }));
   };
 
   const filteredOperations = operations.filter((item) => {
@@ -244,8 +239,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
           year: formData.year,
           title: formData.title,
           description: formData.description || null,
-          excelData: formData.excelData || null,
-          excelFilename: formData.excelFilename || null,
+          pdfData: formData.pdfData || null,
+          pdfFilename: formData.pdfFilename || null,
           scheduleType: formData.scheduleType,
         }),
       });
@@ -265,8 +260,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         year: currentYear,
         title: "",
         description: "",
-        excelData: "",
-        excelFilename: "",
+        pdfData: "",
+        pdfFilename: "",
         scheduleType: "this_week",
       });
       setIsCreateDialogOpen(false);
@@ -315,8 +310,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
           year: formData.year,
           title: formData.title,
           description: formData.description || null,
-          excelData: formData.excelData || null,
-          excelFilename: formData.excelFilename || null,
+          pdfData: formData.pdfData || null,
+          pdfFilename: formData.pdfFilename || null,
           scheduleType: formData.scheduleType,
         }),
       });
@@ -338,8 +333,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         year: currentYear,
         title: "",
         description: "",
-        excelData: "",
-        excelFilename: "",
+        pdfData: "",
+        pdfFilename: "",
         scheduleType: "this_week",
       });
       fetchOperations();
@@ -411,8 +406,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
       year: yearNum,
       title: `Week ${weekNum} Schedule`,
       description: "",
-      excelData: "",
-      excelFilename: "",
+      pdfData: "",
+      pdfFilename: "",
       scheduleType: scheduleType,
     });
     setIsCreateDialogOpen(true);
@@ -425,8 +420,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
       year: item.year,
       title: item.title,
       description: item.description || "",
-      excelData: item.excelData || "",
-      excelFilename: item.excelFilename || "",
+      pdfData: item.pdfData || "",
+      pdfFilename: item.pdfFilename || "",
       scheduleType: item.scheduleType,
     });
     setIsEditDialogOpen(true);
@@ -510,41 +505,41 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         />
       </div>
 
-      {/* Excel Upload */}
+      {/* PDF Upload */}
       <div className="space-y-2">
-        <Label htmlFor={`${prefix}-excel`}>
-          <FileSpreadsheet className="inline h-4 w-4 mr-1" />
-          Excel Schedule File
+        <Label htmlFor={`${prefix}-pdf`}>
+          <FileText className="inline h-4 w-4 mr-1" />
+          PDF Schedule File
         </Label>
         <div className="flex flex-col gap-2">
           <div className="flex gap-2">
             <input
-              id={`${prefix}-excel`}
+              id={`${prefix}-pdf`}
               type="file"
-              accept=".xls,.xlsx,.ods,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              onChange={handleExcelUpload}
+              accept=".pdf,application/pdf"
+              onChange={handlePdfUpload}
               className="flex-1 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
-            {formData.excelData && (
+            {formData.pdfData && (
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={clearExcel}
+                onClick={clearPdf}
                 className="shrink-0"
               >
                 <X className="h-4 w-4" />
               </Button>
             )}
           </div>
-          {formData.excelFilename && (
-            <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
-              <FileSpreadsheet className="h-4 w-4 text-green-600" />
-              <span className="text-sm text-green-700 dark:text-green-400">{formData.excelFilename}</span>
+          {formData.pdfFilename && (
+            <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+              <FileText className="h-4 w-4 text-red-600" />
+              <span className="text-sm text--700 dark:text-red-400">{formData.pdfFilename}</span>
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Max size: {MAX_EXCEL_SIZE / 1024 / 1024}MB. Supported: .xls, .xlsx, .ods
+            Max size: {MAX_PDF_SIZE / 1024 / 1024}MB. Supported: .pdf
           </p>
         </div>
       </div>
@@ -558,7 +553,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <div>
           <h2 className="text-2xl font-bold">Operations Management</h2>
           <p className="text-muted-foreground">
-            Manage weekly operations schedules with Excel file uploads
+            Manage weekly operations schedules with PDF file uploads
           </p>
         </div>
 
@@ -575,7 +570,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
             <DialogHeader>
               <DialogTitle>Create New Operations Schedule</DialogTitle>
               <DialogDescription>
-                Add a new weekly operations schedule with an Excel file.
+                Add a new weekly operations schedule with a PDF file.
               </DialogDescription>
             </DialogHeader>
             {renderFormContent("create")}
@@ -604,7 +599,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
               <div className="space-y-2">
                 <div className="text-lg font-bold">Week {currentWeek}, {currentYear}</div>
                 <div className="text-sm text-muted-foreground">{currentWeekSchedule.title}</div>
-                {currentWeekSchedule.excelData && (
+                {currentWeekSchedule.pdfData && (
                   <div className="flex gap-2 mt-2">
                     <Button
                       size="sm"
@@ -615,8 +610,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                       View
                     </Button>
                     <a
-                      href={currentWeekSchedule.excelData}
-                      download={currentWeekSchedule.excelFilename || "schedule.xlsx"}
+                      href={currentWeekSchedule.pdfData}
+                      download={currentWeekSchedule.pdfFilename || "schedule.pdf"}
                     >
                       <Button size="sm" variant="outline">
                         <Download className="h-4 w-4 mr-1" />
@@ -656,7 +651,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                   Week {nextWeekInfo.weekNumber}, {nextWeekInfo.year}
                 </div>
                 <div className="text-sm text-muted-foreground">{nextWeekSchedule.title}</div>
-                {nextWeekSchedule.excelData && (
+                {nextWeekSchedule.pdfData && (
                   <div className="flex gap-2 mt-2">
                     <Button
                       size="sm"
@@ -667,8 +662,8 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                       View
                     </Button>
                     <a
-                      href={nextWeekSchedule.excelData}
-                      download={nextWeekSchedule.excelFilename || "schedule.xlsx"}
+                      href={nextWeekSchedule.pdfData}
+                      download={nextWeekSchedule.pdfFilename || "schedule.pdf"}
                     >
                       <Button size="sm" variant="outline">
                         <Download className="h-4 w-4 mr-1" />
@@ -702,7 +697,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Schedules</CardTitle>
-            <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{operationStats.total}</div>
@@ -777,7 +772,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
             Operations Schedules ({filteredOperations.length})
           </CardTitle>
         </CardHeader>
@@ -798,7 +793,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                     <TableHead>Schedule Type</TableHead>
                     <TableHead>Week/Year</TableHead>
                     <TableHead>Title</TableHead>
-                    <TableHead>Excel File</TableHead>
+                    <TableHead>PDF File</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
@@ -827,14 +822,14 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                         <div className="font-medium">{operation.title}</div>
                       </TableCell>
                       <TableCell>
-                        {operation.excelData ? (
+                        {operation.pdfData ? (
                           <a
-                            href={operation.excelData}
-                            download={operation.excelFilename || "schedule.xlsx"}
-                            className="text-green-600 hover:text-green-800 flex items-center gap-1"
+                            href={operation.pdfData}
+                            download={operation.pdfFilename || "schedule.pdf"}
+                            className="text-red-600 hover:text-red-800 flex items-center gap-1"
                           >
                             <Download className="h-4 w-4" />
-                            {operation.excelFilename || "Download"}
+                            {operation.pdfFilename || "Download"}
                           </a>
                         ) : (
                           <span className="text-muted-foreground text-sm">
@@ -868,7 +863,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {operation.excelData && (
+                          {operation.pdfData && (
                             <Button
                               variant="outline"
                               size="sm"
@@ -964,18 +959,18 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                 <p className="mt-1">{viewingItem.description}</p>
               </div>
             )}
-            {viewingItem?.excelData && (
+            {viewingItem?.pdfData && (
               <div className="space-y-2">
-                <Label className="text-muted-foreground">Excel File</Label>
-                <div className="flex items-center gap-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <FileSpreadsheet className="h-8 w-8 text-green-600" />
+                <Label className="text-muted-foreground">PDF File</Label>
+                <div className="flex items-center gap-4 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <FileText className="h-8 w-8 text-red-600" />
                   <div className="flex-1">
-                    <p className="font-medium">{viewingItem.excelFilename}</p>
+                    <p className="font-medium">{viewingItem.pdfFilename}</p>
                     <p className="text-sm text-muted-foreground">Click to download the schedule file</p>
                   </div>
                   <a
-                    href={viewingItem.excelData}
-                    download={viewingItem.excelFilename || "schedule.xlsx"}
+                    href={viewingItem.pdfData}
+                    download={viewingItem.pdfFilename || "schedule.pdf"}
                   >
                     <Button>
                       <Download className="h-4 w-4 mr-2" />

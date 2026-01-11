@@ -27,8 +27,8 @@ export async function GET(
       year: operation.year,
       title: operation.title,
       description: operation.description,
-      excelData: operation.excel_data,
-      excelFilename: operation.excel_filename,
+      pdfData: operation.pdf_data,
+      pdfFilename: operation.pdf_filename,
       scheduleType: operation.schedule_type,
       isActive: operation.is_active,
       createdAt: operation.created_at.toISOString(),
@@ -51,7 +51,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { weekNumber, year, title, description, excelData, excelFilename, scheduleType } = body;
+    const { weekNumber, year, title, description, pdfData, pdfFilename, scheduleType } = body;
 
     if (!weekNumber || !year || !title) {
       return NextResponse.json(
@@ -67,8 +67,8 @@ export async function PUT(
         year: year,
         title: title,
         description: description || null,
-        excel_data: excelData || null,
-        excel_filename: excelFilename || null,
+        pdf_data: pdfData || null,
+        pdf_filename: pdfFilename || null,
         schedule_type: scheduleType,
         updated_at: new Date(),
       },
@@ -80,8 +80,8 @@ export async function PUT(
       year: updatedOperation.year,
       title: updatedOperation.title,
       description: updatedOperation.description,
-      excelData: updatedOperation.excel_data,
-      excelFilename: updatedOperation.excel_filename,
+      pdfData: updatedOperation.pdf_data,
+      pdfFilename: updatedOperation.pdf_filename,
       scheduleType: updatedOperation.schedule_type,
       isActive: updatedOperation.is_active,
       createdAt: updatedOperation.created_at.toISOString(),
@@ -120,8 +120,8 @@ export async function PATCH(
       year: updatedOperation.year,
       title: updatedOperation.title,
       description: updatedOperation.description,
-      excelData: updatedOperation.excel_data,
-      excelFilename: updatedOperation.excel_filename,
+      pdfData: updatedOperation.pdf_data,
+      pdfFilename: updatedOperation.pdf_filename,
       scheduleType: updatedOperation.schedule_type,
       isActive: updatedOperation.is_active,
       createdAt: updatedOperation.created_at.toISOString(),

@@ -172,8 +172,8 @@ model operations {
   year           Int
   title          String   @db.VarChar(200)
   description    String?  @db.Text
-  excel_data     String?  @db.Text
-  excel_filename String?  @db.VarChar(255)
+  pdf_data       String?  @db.Text
+  pdf_filename   String?  @db.VarChar(255)
   schedule_type  String   @db.VarChar(20) @default("this_week") // "this_week" or "next_week"
   is_active      Boolean  @default(true)
   created_at     DateTime @default(now()) @db.Timestamptz(6)

@@ -19,8 +19,8 @@ export async function GET() {
       year: op.year,
       title: op.title,
       description: op.description,
-      excelData: op.excel_data,
-      excelFilename: op.excel_filename,
+      pdfData: op.pdf_data,
+      pdfFilename: op.pdf_filename,
       scheduleType: op.schedule_type,
       isActive: op.is_active,
       createdAt: op.created_at.toISOString(),
@@ -41,7 +41,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { weekNumber, year, title, description, excelData, excelFilename, scheduleType } = body;
+    const { weekNumber, year, title, description, pdfData, pdfFilename, scheduleType } = body;
 
     if (!weekNumber || !year || !title || !scheduleType) {
       return NextResponse.json(
@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
         year: year,
         title: title,
         description: description || null,
-        excel_data: excelData || null,
-        excel_filename: excelFilename || null,
+        pdf_data: pdfData || null,
+        pdf_filename: pdfFilename || null,
         schedule_type: scheduleType,
         is_active: true,
         created_at: new Date(),
@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
       year: newOperation.year,
       title: newOperation.title,
       description: newOperation.description,
-      excelData: newOperation.excel_data,
-      excelFilename: newOperation.excel_filename,
+      pdfData: newOperation.pdf_data,
+      pdfFilename: newOperation.pdf_filename,
       scheduleType: newOperation.schedule_type,
       isActive: newOperation.is_active,
       createdAt: newOperation.created_at.toISOString(),
