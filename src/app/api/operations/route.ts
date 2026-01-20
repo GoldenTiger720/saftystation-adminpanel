@@ -22,6 +22,7 @@ export async function GET() {
       pdfData: op.pdf_data,
       pdfFilename: op.pdf_filename,
       scheduleType: op.schedule_type,
+      teamType: op.team_type,
       isActive: op.is_active,
       createdAt: op.created_at.toISOString(),
       updatedAt: op.updated_at.toISOString(),
@@ -41,7 +42,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { weekNumber, year, title, description, pdfData, pdfFilename, scheduleType } = body;
+    const { weekNumber, year, title, description, pdfData, pdfFilename, scheduleType, teamType = "operations" } = body;
 
     if (!weekNumber || !year || !title || !scheduleType) {
       return NextResponse.json(
@@ -58,16 +59,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if operation for this schedule type already exists
+    // Validate teamType
+    if (!["operations", "maintenance"].includes(teamType)) {
+      return NextResponse.json(
+        { error: "Team type must be 'operations' or 'maintenance'" },
+        { status: 400 }
+      );
+    }
+
+    // Check if operation for this schedule type and team type already exists
     const existing = await prisma.operations.findUnique({
       where: {
-        schedule_type: scheduleType,
+        schedule_type_team_type: {
+          schedule_type: scheduleType,
+          team_type: teamType,
+        },
       },
     });
 
+    const teamLabel = teamType === "operations" ? "Operations Team" : "Maintenance Team";
+    const weekLabel = scheduleType === "this_week" ? "this week" : "next week";
+
     if (existing) {
       return NextResponse.json(
-        { error: `A schedule for ${scheduleType === "this_week" ? "this week" : "next week"} already exists. Please edit the existing one.` },
+        { error: `A schedule for ${teamLabel} (${weekLabel}) already exists. Please edit the existing one.` },
         { status: 400 }
       );
     }
@@ -81,6 +96,7 @@ export async function POST(request: NextRequest) {
         pdf_data: pdfData || null,
         pdf_filename: pdfFilename || null,
         schedule_type: scheduleType,
+        team_type: teamType,
         is_active: true,
         created_at: new Date(),
         updated_at: new Date(),
@@ -96,6 +112,7 @@ export async function POST(request: NextRequest) {
       pdfData: newOperation.pdf_data,
       pdfFilename: newOperation.pdf_filename,
       scheduleType: newOperation.schedule_type,
+      teamType: newOperation.team_type,
       isActive: newOperation.is_active,
       createdAt: newOperation.created_at.toISOString(),
       updatedAt: newOperation.updated_at.toISOString(),

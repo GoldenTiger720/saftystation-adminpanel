@@ -175,9 +175,10 @@ model operations {
   pdf_data       String?  @db.Text
   pdf_filename   String?  @db.VarChar(255)
   schedule_type  String   @db.VarChar(20) @default("this_week") // "this_week" or "next_week"
+  team_type      String   @db.VarChar(20) @default("operations") // "operations" or "maintenance"
   is_active      Boolean  @default(true)
   created_at     DateTime @default(now()) @db.Timestamptz(6)
   updated_at     DateTime @default(now()) @db.Timestamptz(6)
 
-  @@unique([schedule_type])
+  @@unique([schedule_type, team_type])
 }

@@ -301,9 +301,9 @@ export default function AdminPanel() {
               <AlertTriangle className="h-4 w-4" />
               Safety Alerts
             </TabsTrigger>
-            <TabsTrigger value="operations" className="flex items-center gap-2">
+            <TabsTrigger value="planning" className="flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4" />
-              Operations
+              Planning
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="h-4 w-4" />
@@ -335,7 +335,7 @@ export default function AdminPanel() {
             <SafetyAlertsManagement />
           </TabsContent>
 
-          <TabsContent value="operations" className="space-y-6">
+          <TabsContent value="planning" className="space-y-6">
             <OperationsManagement />
           </TabsContent>
 

@@ -36,6 +36,7 @@ interface Operation {
   pdfData: string | null;
   pdfFilename: string | null;
   scheduleType: "this_week" | "next_week";
+  teamType: "operations" | "maintenance";
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -69,6 +70,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
     pdfData: "",
     pdfFilename: "",
     scheduleType: "this_week" as "this_week" | "next_week",
+    teamType: "operations" as "operations" | "maintenance",
   });
 
   const { toast } = useToast();
@@ -199,12 +201,18 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
 
   const nextWeekInfo = getNextWeek(currentWeek, currentYear);
 
-  // Get current and next week schedules by scheduleType
-  const currentWeekSchedule = operations.find(
-    (op) => op.scheduleType === "this_week" && op.isActive
+  // Get current and next week schedules by scheduleType and teamType
+  const opsThisWeekSchedule = operations.find(
+    (op) => op.scheduleType === "this_week" && op.teamType === "operations" && op.isActive
   );
-  const nextWeekSchedule = operations.find(
-    (op) => op.scheduleType === "next_week" && op.isActive
+  const opsNextWeekSchedule = operations.find(
+    (op) => op.scheduleType === "next_week" && op.teamType === "operations" && op.isActive
+  );
+  const maintThisWeekSchedule = operations.find(
+    (op) => op.scheduleType === "this_week" && op.teamType === "maintenance" && op.isActive
+  );
+  const maintNextWeekSchedule = operations.find(
+    (op) => op.scheduleType === "next_week" && op.teamType === "maintenance" && op.isActive
   );
 
   const handleCreateOperation = async () => {
@@ -242,6 +250,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
           pdfData: formData.pdfData || null,
           pdfFilename: formData.pdfFilename || null,
           scheduleType: formData.scheduleType,
+          teamType: formData.teamType,
         }),
       });
 
@@ -263,6 +272,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         pdfData: "",
         pdfFilename: "",
         scheduleType: "this_week",
+        teamType: "operations",
       });
       setIsCreateDialogOpen(false);
       fetchOperations();
@@ -313,6 +323,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
           pdfData: formData.pdfData || null,
           pdfFilename: formData.pdfFilename || null,
           scheduleType: formData.scheduleType,
+          teamType: formData.teamType,
         }),
       });
 
@@ -336,6 +347,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         pdfData: "",
         pdfFilename: "",
         scheduleType: "this_week",
+        teamType: "operations",
       });
       fetchOperations();
     } catch (error) {
@@ -398,17 +410,19 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
     }
   };
 
-  const openCreateDialog = (scheduleType: "this_week" | "next_week" = "this_week") => {
+  const openCreateDialog = (scheduleType: "this_week" | "next_week" = "this_week", teamType: "operations" | "maintenance" = "operations") => {
     const weekNum = scheduleType === "this_week" ? currentWeek : nextWeekInfo.weekNumber;
     const yearNum = scheduleType === "this_week" ? currentYear : nextWeekInfo.year;
+    const teamLabel = teamType === "operations" ? "Operations" : "Maintenance";
     setFormData({
       weekNumber: weekNum,
       year: yearNum,
-      title: `Week ${weekNum} Schedule`,
+      title: `${teamLabel} - Week ${weekNum} Schedule`,
       description: "",
       pdfData: "",
       pdfFilename: "",
       scheduleType: scheduleType,
+      teamType: teamType,
     });
     setIsCreateDialogOpen(true);
   };
@@ -423,6 +437,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
       pdfData: item.pdfData || "",
       pdfFilename: item.pdfFilename || "",
       scheduleType: item.scheduleType,
+      teamType: item.teamType,
     });
     setIsEditDialogOpen(true);
   };
@@ -551,9 +566,9 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
       {/* Header and Actions */}
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div>
-          <h2 className="text-2xl font-bold">Operations Management</h2>
+          <h2 className="text-2xl font-bold">Planning Management</h2>
           <p className="text-muted-foreground">
-            Manage weekly operations schedules with PDF file uploads
+            Manage weekly planning schedules with PDF file uploads
           </p>
         </div>
 
@@ -568,9 +583,9 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create New Operations Schedule</DialogTitle>
+              <DialogTitle>Create New Planning Schedule</DialogTitle>
               <DialogDescription>
-                Add a new weekly operations schedule with a PDF file.
+                Add a new weekly planning schedule with a PDF file.
               </DialogDescription>
             </DialogHeader>
             {renderFormContent("create")}
@@ -587,109 +602,220 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         </Dialog>
       </div>
 
-      {/* Quick Access Cards - This Week & Next Week */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="border-2 border-blue-200 dark:border-blue-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Week&apos;s Schedule</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            {currentWeekSchedule ? (
-              <div className="space-y-2">
-                <div className="text-lg font-bold">Week {currentWeek}, {currentYear}</div>
-                <div className="text-sm text-muted-foreground">{currentWeekSchedule.title}</div>
-                {currentWeekSchedule.pdfData && (
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openViewDialog(currentWeekSchedule)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <a
-                      href={currentWeekSchedule.pdfData}
-                      download={currentWeekSchedule.pdfFilename || "schedule.pdf"}
-                    >
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4 mr-1" />
-                        Download
+      {/* Quick Access Cards - Operations Team */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-blue-600 dark:text-blue-400">Operations Team</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-2 border-blue-200 dark:border-blue-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Week&apos;s Schedule</CardTitle>
+              <Calendar className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              {opsThisWeekSchedule ? (
+                <div className="space-y-2">
+                  <div className="text-lg font-bold">Week {currentWeek}, {currentYear}</div>
+                  <div className="text-sm text-muted-foreground">{opsThisWeekSchedule.title}</div>
+                  {opsThisWeekSchedule.pdfData && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openViewDialog(opsThisWeekSchedule)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
                       </Button>
-                    </a>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="text-muted-foreground">
-                  No schedule for this week
+                      <a
+                        href={opsThisWeekSchedule.pdfData}
+                        download={opsThisWeekSchedule.pdfFilename || "schedule.pdf"}
+                      >
+                        <Button size="sm" variant="outline">
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  )}
                 </div>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => openCreateDialog("this_week")}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Create one
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-muted-foreground">
+                    No schedule for this week
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => openCreateDialog("this_week", "operations")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create one
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card className="border-2 border-purple-200 dark:border-purple-800">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Next Week&apos;s Schedule</CardTitle>
-            <Calendar className="h-4 w-4 text-purple-500" />
-          </CardHeader>
-          <CardContent>
-            {nextWeekSchedule ? (
-              <div className="space-y-2">
-                <div className="text-lg font-bold">
-                  Week {nextWeekInfo.weekNumber}, {nextWeekInfo.year}
-                </div>
-                <div className="text-sm text-muted-foreground">{nextWeekSchedule.title}</div>
-                {nextWeekSchedule.pdfData && (
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openViewDialog(nextWeekSchedule)}
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
-                    </Button>
-                    <a
-                      href={nextWeekSchedule.pdfData}
-                      download={nextWeekSchedule.pdfFilename || "schedule.pdf"}
-                    >
-                      <Button size="sm" variant="outline">
-                        <Download className="h-4 w-4 mr-1" />
-                        Download
-                      </Button>
-                    </a>
+          <Card className="border-2 border-blue-200 dark:border-blue-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Next Week&apos;s Schedule</CardTitle>
+              <Calendar className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              {opsNextWeekSchedule ? (
+                <div className="space-y-2">
+                  <div className="text-lg font-bold">
+                    Week {nextWeekInfo.weekNumber}, {nextWeekInfo.year}
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="text-muted-foreground">
-                  No schedule for next week
+                  <div className="text-sm text-muted-foreground">{opsNextWeekSchedule.title}</div>
+                  {opsNextWeekSchedule.pdfData && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openViewDialog(opsNextWeekSchedule)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      <a
+                        href={opsNextWeekSchedule.pdfData}
+                        download={opsNextWeekSchedule.pdfFilename || "schedule.pdf"}
+                      >
+                        <Button size="sm" variant="outline">
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  )}
                 </div>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => openCreateDialog("next_week")}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Create one
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-muted-foreground">
+                    No schedule for next week
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => openCreateDialog("next_week", "operations")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create one
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Quick Access Cards - Maintenance Team */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-orange-600 dark:text-orange-400">Maintenance Team</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className="border-2 border-orange-200 dark:border-orange-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">This Week&apos;s Schedule</CardTitle>
+              <Calendar className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              {maintThisWeekSchedule ? (
+                <div className="space-y-2">
+                  <div className="text-lg font-bold">Week {currentWeek}, {currentYear}</div>
+                  <div className="text-sm text-muted-foreground">{maintThisWeekSchedule.title}</div>
+                  {maintThisWeekSchedule.pdfData && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openViewDialog(maintThisWeekSchedule)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      <a
+                        href={maintThisWeekSchedule.pdfData}
+                        download={maintThisWeekSchedule.pdfFilename || "schedule.pdf"}
+                      >
+                        <Button size="sm" variant="outline">
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-muted-foreground">
+                    No schedule for this week
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => openCreateDialog("this_week", "maintenance")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create one
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-orange-200 dark:border-orange-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Next Week&apos;s Schedule</CardTitle>
+              <Calendar className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              {maintNextWeekSchedule ? (
+                <div className="space-y-2">
+                  <div className="text-lg font-bold">
+                    Week {nextWeekInfo.weekNumber}, {nextWeekInfo.year}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{maintNextWeekSchedule.title}</div>
+                  {maintNextWeekSchedule.pdfData && (
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openViewDialog(maintNextWeekSchedule)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        View
+                      </Button>
+                      <a
+                        href={maintNextWeekSchedule.pdfData}
+                        download={maintNextWeekSchedule.pdfFilename || "schedule.pdf"}
+                      >
+                        <Button size="sm" variant="outline">
+                          <Download className="h-4 w-4 mr-1" />
+                          Download
+                        </Button>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-muted-foreground">
+                    No schedule for next week
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => openCreateDialog("next_week", "maintenance")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Create one
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       {/* Operation Stats */}
@@ -768,12 +894,12 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         </CardContent>
       </Card>
 
-      {/* Operations Table */}
+      {/* Planning Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Operations Schedules ({filteredOperations.length})
+            Planning Schedules ({filteredOperations.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -790,6 +916,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Team</TableHead>
                     <TableHead>Schedule Type</TableHead>
                     <TableHead>Week/Year</TableHead>
                     <TableHead>Title</TableHead>
@@ -805,8 +932,19 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                       <TableCell>
                         <Badge
                           className={
-                            operation.scheduleType === "this_week"
+                            operation.teamType === "operations"
                               ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                              : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
+                          }
+                        >
+                          {operation.teamType === "operations" ? "Operations" : "Maintenance"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            operation.scheduleType === "this_week"
+                              ? "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
                               : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
                           }
                         >
@@ -892,7 +1030,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Operations Schedule</AlertDialogTitle>
+                                <AlertDialogTitle>Delete Planning Schedule</AlertDialogTitle>
                                 <AlertDialogDescription>
                                   Are you sure you want to delete &quot;
                                   {operation.title}&quot;? This action cannot be undone.
@@ -923,9 +1061,9 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Operations Schedule</DialogTitle>
+            <DialogTitle>Edit Planning Schedule</DialogTitle>
             <DialogDescription>
-              Update the operations schedule information.
+              Update the planning schedule information.
             </DialogDescription>
           </DialogHeader>
           {renderFormContent("edit")}
@@ -946,7 +1084,7 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {viewingItem?.title || "Operations Schedule"}
+              {viewingItem?.title || "Planning Schedule"}
             </DialogTitle>
             <DialogDescription>
               Week {viewingItem?.weekNumber}, {viewingItem?.year}

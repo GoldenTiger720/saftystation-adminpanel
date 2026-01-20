@@ -30,6 +30,7 @@ export async function GET(
       pdfData: operation.pdf_data,
       pdfFilename: operation.pdf_filename,
       scheduleType: operation.schedule_type,
+      teamType: operation.team_type,
       isActive: operation.is_active,
       createdAt: operation.created_at.toISOString(),
       updatedAt: operation.updated_at.toISOString(),
@@ -51,7 +52,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { weekNumber, year, title, description, pdfData, pdfFilename, scheduleType } = body;
+    const { weekNumber, year, title, description, pdfData, pdfFilename, scheduleType, teamType } = body;
 
     if (!weekNumber || !year || !title) {
       return NextResponse.json(
@@ -70,6 +71,7 @@ export async function PUT(
         pdf_data: pdfData || null,
         pdf_filename: pdfFilename || null,
         schedule_type: scheduleType,
+        team_type: teamType,
         updated_at: new Date(),
       },
     });
@@ -83,6 +85,7 @@ export async function PUT(
       pdfData: updatedOperation.pdf_data,
       pdfFilename: updatedOperation.pdf_filename,
       scheduleType: updatedOperation.schedule_type,
+      teamType: updatedOperation.team_type,
       isActive: updatedOperation.is_active,
       createdAt: updatedOperation.created_at.toISOString(),
       updatedAt: updatedOperation.updated_at.toISOString(),
@@ -123,6 +126,7 @@ export async function PATCH(
       pdfData: updatedOperation.pdf_data,
       pdfFilename: updatedOperation.pdf_filename,
       scheduleType: updatedOperation.schedule_type,
+      teamType: updatedOperation.team_type,
       isActive: updatedOperation.is_active,
       createdAt: updatedOperation.created_at.toISOString(),
       updatedAt: updatedOperation.updated_at.toISOString(),
