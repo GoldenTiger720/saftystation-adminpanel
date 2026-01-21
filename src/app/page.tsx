@@ -12,6 +12,7 @@ import VideoManagement from "@/components/admin/VideoManagement";
 import NewsManagement from "@/components/admin/NewsManagement";
 import SafetyAlertsManagement from "@/components/admin/SafetyAlertsManagement";
 import OperationsManagement from "@/components/admin/OperationsManagement";
+import TrainingDevelopmentManagement from "@/components/admin/TrainingDevelopmentManagement";
 import SystemSettings from "@/components/admin/SystemSettings";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +36,7 @@ import {
   LogOut,
   Loader2,
   FileSpreadsheet,
+  BookOpen,
 } from "lucide-react";
 
 interface SystemStats {
@@ -280,7 +282,7 @@ export default function AdminPanel() {
 
         {/* Main Content */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -304,6 +306,10 @@ export default function AdminPanel() {
             <TabsTrigger value="planning" className="flex items-center gap-2">
               <FileSpreadsheet className="h-4 w-4" />
               Planning
+            </TabsTrigger>
+            <TabsTrigger value="training" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Training
             </TabsTrigger>
             <TabsTrigger value="videos" className="flex items-center gap-2">
               <Video className="h-4 w-4" />
@@ -337,6 +343,10 @@ export default function AdminPanel() {
 
           <TabsContent value="planning" className="space-y-6">
             <OperationsManagement />
+          </TabsContent>
+
+          <TabsContent value="training" className="space-y-6">
+            <TrainingDevelopmentManagement />
           </TabsContent>
 
           <TabsContent value="videos" className="space-y-6">

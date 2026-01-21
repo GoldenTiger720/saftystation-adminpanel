@@ -25,6 +25,8 @@ import {
   X,
   Download,
   Eye,
+  Link as LinkIcon,
+  ExternalLink,
 } from "lucide-react";
 
 interface Operation {
@@ -42,6 +44,17 @@ interface Operation {
   updatedAt: string;
 }
 
+interface RealtimeScheduleLink {
+  id: string;
+  teamType: "operations" | "maintenance";
+  title: string;
+  linkUrl: string;
+  description: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface OperationsManagementProps {
   className?: string;
 }
@@ -50,14 +63,24 @@ const MAX_PDF_SIZE = 20 * 1024 * 1024; // 20MB limit for PDF files
 
 const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }) => {
   const [operations, setOperations] = useState<Operation[]>([]);
+  const [realtimeLinks, setRealtimeLinks] = useState<RealtimeScheduleLink[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState<RealtimeScheduleLink | null>(null);
   const [viewingItem, setViewingItem] = useState<Operation | null>(null);
   const [editingItem, setEditingItem] = useState<Operation | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  const [linkFormData, setLinkFormData] = useState({
+    teamType: "operations" as "operations" | "maintenance",
+    title: "",
+    linkUrl: "",
+    description: "",
+  });
 
   const currentYear = new Date().getFullYear();
   const currentWeek = getWeekNumber(new Date());
@@ -86,10 +109,19 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
   const fetchOperations = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/operations");
-      if (!response.ok) throw new Error("Failed to fetch operations");
-      const data = await response.json();
-      setOperations(data);
+      const [operationsRes, linksRes] = await Promise.all([
+        fetch("/api/operations"),
+        fetch("/api/realtime-schedule-links"),
+      ]);
+
+      if (!operationsRes.ok) throw new Error("Failed to fetch operations");
+      const operationsData = await operationsRes.json();
+      setOperations(operationsData);
+
+      if (linksRes.ok) {
+        const linksData = await linksRes.json();
+        setRealtimeLinks(linksData);
+      }
     } catch (error) {
       console.error("Error fetching operations:", error);
       toast({
@@ -446,6 +478,102 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
     setViewingItem(item);
     setIsViewDialogOpen(true);
   };
+
+  // Realtime Schedule Link functions
+  const openLinkDialog = (teamType: "operations" | "maintenance") => {
+    const existingLink = realtimeLinks.find((l) => l.teamType === teamType);
+    if (existingLink) {
+      setEditingLink(existingLink);
+      setLinkFormData({
+        teamType: existingLink.teamType,
+        title: existingLink.title,
+        linkUrl: existingLink.linkUrl,
+        description: existingLink.description || "",
+      });
+    } else {
+      setEditingLink(null);
+      setLinkFormData({
+        teamType: teamType,
+        title: teamType === "operations" ? "Operations Real-time Schedule" : "Maintenance Real-time Schedule",
+        linkUrl: "",
+        description: "",
+      });
+    }
+    setIsLinkDialogOpen(true);
+  };
+
+  const handleSaveLink = async () => {
+    if (!linkFormData.title || !linkFormData.linkUrl) {
+      toast({
+        title: "Error",
+        description: "Please fill in title and link URL",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (editingLink) {
+        // Update existing link
+        const response = await fetch(`/api/realtime-schedule-links/${editingLink.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(linkFormData),
+        });
+        if (!response.ok) throw new Error("Failed to update link");
+        toast({
+          title: "Success",
+          description: "Real-time schedule link updated successfully",
+        });
+      } else {
+        // Create new link
+        const response = await fetch("/api/realtime-schedule-links", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(linkFormData),
+        });
+        if (!response.ok) throw new Error("Failed to create link");
+        toast({
+          title: "Success",
+          description: "Real-time schedule link created successfully",
+        });
+      }
+      setIsLinkDialogOpen(false);
+      setEditingLink(null);
+      fetchOperations();
+    } catch (error) {
+      console.error("Error saving link:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save real-time schedule link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteLink = async (linkId: string) => {
+    try {
+      const response = await fetch(`/api/realtime-schedule-links/${linkId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete link");
+      toast({
+        title: "Success",
+        description: "Real-time schedule link deleted successfully",
+      });
+      fetchOperations();
+    } catch (error) {
+      console.error("Error deleting link:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete real-time schedule link",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const opsRealtimeLink = realtimeLinks.find((l) => l.teamType === "operations");
+  const maintRealtimeLink = realtimeLinks.find((l) => l.teamType === "maintenance");
 
   const operationStats = {
     total: operations.length,
@@ -818,6 +946,173 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
         </div>
       </div>
 
+      {/* Real-time Schedule Links */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold text-green-600 dark:text-green-400">Real-time Schedule Links</h3>
+        <p className="text-sm text-muted-foreground">
+          Configure links that will be displayed on the main website for users to check real-time schedules
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Operations Link */}
+          <Card className="border-2 border-green-200 dark:border-green-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Operations Real-time Link</CardTitle>
+              <LinkIcon className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              {opsRealtimeLink ? (
+                <div className="space-y-2">
+                  <div className="text-lg font-bold">{opsRealtimeLink.title}</div>
+                  {opsRealtimeLink.description && (
+                    <div className="text-sm text-muted-foreground">{opsRealtimeLink.description}</div>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    <a
+                      href={opsRealtimeLink.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open Link
+                    </a>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openLinkDialog("operations")}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Real-time Link</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this real-time schedule link? This will remove it from the main website.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteLink(opsRealtimeLink.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-muted-foreground">
+                    No real-time link configured
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => openLinkDialog("operations")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Link
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Maintenance Link */}
+          <Card className="border-2 border-green-200 dark:border-green-800">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Maintenance Real-time Link</CardTitle>
+              <LinkIcon className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              {maintRealtimeLink ? (
+                <div className="space-y-2">
+                  <div className="text-lg font-bold">{maintRealtimeLink.title}</div>
+                  {maintRealtimeLink.description && (
+                    <div className="text-sm text-muted-foreground">{maintRealtimeLink.description}</div>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    <a
+                      href={maintRealtimeLink.linkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      Open Link
+                    </a>
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openLinkDialog("maintenance")}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Real-time Link</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this real-time schedule link? This will remove it from the main website.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteLink(maintRealtimeLink.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-muted-foreground">
+                    No real-time link configured
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => openLinkDialog("maintenance")}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Link
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
       {/* Operation Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -1122,6 +1417,85 @@ const OperationsManagement: React.FC<OperationsManagementProps> = ({ className }
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Real-time Schedule Link Dialog */}
+      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingLink ? "Edit Real-time Schedule Link" : "Add Real-time Schedule Link"}
+            </DialogTitle>
+            <DialogDescription>
+              Configure a link for users to check real-time schedules on the main website.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="link-team">Team Type</Label>
+              <Input
+                id="link-team"
+                value={linkFormData.teamType === "operations" ? "Operations" : "Maintenance"}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="link-title">Title *</Label>
+              <Input
+                id="link-title"
+                value={linkFormData.title}
+                onChange={(e) =>
+                  setLinkFormData((prev) => ({ ...prev, title: e.target.value }))
+                }
+                placeholder="Enter link title"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="link-url">
+                <LinkIcon className="inline h-4 w-4 mr-1" />
+                Link URL *
+              </Label>
+              <Input
+                id="link-url"
+                value={linkFormData.linkUrl}
+                onChange={(e) =>
+                  setLinkFormData((prev) => ({ ...prev, linkUrl: e.target.value }))
+                }
+                placeholder="https://..."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="link-description">Description</Label>
+              <Textarea
+                id="link-description"
+                rows={2}
+                value={linkFormData.description}
+                onChange={(e) =>
+                  setLinkFormData((prev) => ({ ...prev, description: e.target.value }))
+                }
+                placeholder="Enter description (optional)"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsLinkDialogOpen(false);
+                setEditingLink(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleSaveLink}>
+              {editingLink ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </DialogContent>
