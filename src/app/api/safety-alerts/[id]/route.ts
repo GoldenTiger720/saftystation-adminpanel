@@ -65,27 +65,48 @@ export async function PUT(
       );
     }
 
-    // Check if another alert with same week/year exists (excluding current one)
-    const existingAlert = await prisma.safety_alerts.findFirst({
-      where: {
-        week_number: weekNumber,
-        year: year,
-        NOT: { id: BigInt(id) },
-      },
+    // Parse the ID as BigInt for comparison
+    const currentId = BigInt(id);
+
+    // First, get the current record to check if week/year is changing
+    const currentRecord = await prisma.safety_alerts.findUnique({
+      where: { id: currentId },
+      select: { week_number: true, year: true },
     });
 
-    if (existingAlert) {
+    if (!currentRecord) {
       return NextResponse.json(
-        { error: `Safety alert for week ${weekNumber} of ${year} already exists` },
-        { status: 409 }
+        { error: "Safety alert not found" },
+        { status: 404 }
       );
     }
 
+    // Only check for duplicates if week or year is being changed
+    const weekChanged = currentRecord.week_number !== Number(weekNumber);
+    const yearChanged = currentRecord.year !== Number(year);
+
+    if (weekChanged || yearChanged) {
+      // Check if another alert with the new week/year already exists
+      const existingAlert = await prisma.safety_alerts.findFirst({
+        where: {
+          week_number: Number(weekNumber),
+          year: Number(year),
+        },
+      });
+
+      if (existingAlert) {
+        return NextResponse.json(
+          { error: `Safety alert for week ${weekNumber} of ${year} already exists` },
+          { status: 409 }
+        );
+      }
+    }
+
     const updatedSafetyAlert = await prisma.safety_alerts.update({
-      where: { id: BigInt(id) },
+      where: { id: currentId },
       data: {
-        week_number: weekNumber,
-        year: year,
+        week_number: Number(weekNumber),
+        year: Number(year),
         category,
         title,
         content,
